@@ -254,6 +254,28 @@ describe('url-parse', function () {
     assume(parsed.hostname).equals('');
   });
 
+  it('handles the case where the port is specified but empty', function () {
+    var parsed = parse('http://example.com:');
+
+    assume(parsed.protocol).equals('http:');
+    assume(parsed.port).equals('');
+    assume(parsed.host).equals('example.com');
+    assume(parsed.hostname).equals('example.com');
+    assume(parsed.pathname).equals('');
+    assume(parsed.origin).equals('http://example.com');
+    assume(parsed.href).equals('http://example.com');
+
+    parsed = parse('http://example.com::');
+
+    assume(parsed.protocol).equals('http:');
+    assume(parsed.port).equals('');
+    assume(parsed.host).equals('example.com:');
+    assume(parsed.hostname).equals('example.com:');
+    assume(parsed.pathname).equals('');
+    assume(parsed.origin).equals('http://example.com:');
+    assume(parsed.href).equals('http://example.com::');
+  });
+
   describe('origin', function () {
     it('generates an origin property', function () {
       var url = 'http://google.com:80/pathname'
@@ -445,6 +467,54 @@ describe('url-parse', function () {
       assume(parsed.protocol).equals('http:');
       assume(parsed.hostname).equals('www.example.com');
       assume(parsed.href).equals(url);
+    });
+
+    it('handles @ in username', function () {
+      var url = 'http://user@@www.example.com/'
+        , parsed = parse(url);
+
+      assume(parsed.protocol).equals('http:');
+      assume(parsed.auth).equals('user%40');
+      assume(parsed.username).equals('user%40');
+      assume(parsed.password).equals('');
+      assume(parsed.hostname).equals('www.example.com');
+      assume(parsed.pathname).equals('/');
+      assume(parsed.href).equals('http://user%40@www.example.com/');
+
+      url = 'http://user%40@www.example.com/';
+      parsed = parse(url);
+
+      assume(parsed.protocol).equals('http:');
+      assume(parsed.auth).equals('user%40');
+      assume(parsed.username).equals('user%40');
+      assume(parsed.password).equals('');
+      assume(parsed.hostname).equals('www.example.com');
+      assume(parsed.pathname).equals('/');
+      assume(parsed.href).equals('http://user%40@www.example.com/');
+    });
+
+    it('handles @ in password', function () {
+      var url = 'http://user@:pas:s@@www.example.com/'
+        , parsed = parse(url);
+
+      assume(parsed.protocol).equals('http:');
+      assume(parsed.auth).equals('user%40:pas%3As%40');
+      assume(parsed.username).equals('user%40');
+      assume(parsed.password).equals('pas%3As%40');
+      assume(parsed.hostname).equals('www.example.com');
+      assume(parsed.pathname).equals('/');
+      assume(parsed.href).equals('http://user%40:pas%3As%40@www.example.com/');
+
+      url = 'http://user%40:pas%3As%40@www.example.com/'
+      parsed = parse(url);
+
+      assume(parsed.protocol).equals('http:');
+      assume(parsed.auth).equals('user%40:pas%3As%40');
+      assume(parsed.username).equals('user%40');
+      assume(parsed.password).equals('pas%3As%40');
+      assume(parsed.hostname).equals('www.example.com');
+      assume(parsed.pathname).equals('/');
+      assume(parsed.href).equals('http://user%40:pas%3As%40@www.example.com/');
     });
   });
 
